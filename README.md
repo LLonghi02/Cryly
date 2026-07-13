@@ -10,6 +10,12 @@ Niente account, niente cloud: tutti i dati restano nel tuo browser.
 
 Pensata come strumento di auto-osservazione, utile ad esempio per notare pattern legati a periodi di stress, lavoro o studio, non come sostituto di un supporto professionale.
 
+## Come usarla
+
+1. Apri https://cryly.altervista.org/
+2. Registra un pianto quando stai male.
+3. Consulta le statistiche.
+
 ## Funzionalità
 
 - **Vista calendario mensile** con navigazione avanti/indietro e scorciatoia "Oggi"

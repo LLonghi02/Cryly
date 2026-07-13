@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Diario del pianto</title>
+<link rel="icon" type="image/svg+xml" href="favicon.svg" />
+<link rel="manifest" href="manifest.webmanifest" />
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
+<meta name="theme-color" content="#372F42" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="Diario" />
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,500&family=Karla:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap');
+
+  :root {
+    --bg: #F7F3F6;
+    --surface: #FFFFFF;
+    --ink: #372F42;
+    --ink-soft2: #7A7189;
+    --divider: #E4DCE8;
+    --accent: #5B4B8A;
+    --accent-soft: #EFEAF5;
+    --amore: #C97B93;
+    --amore-bg: #F8EAEF;
+    --lavoro: #C98F4E;
+    --lavoro-bg: #F9EFDE;
+    --universita: #4E8C8C;
+    --universita-bg: #E7F2F1;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--bg); color: var(--ink); font-family: 'Karla', sans-serif; min-height: 100vh; }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  .cry-app { position: relative; max-width: 640px; margin: 0 auto; padding: 40px 28px 110px; min-height: 100vh; }
+
+  .cry-header { display: flex; align-items: flex-end; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-bottom: 4px; }
+  .cry-brand { display: flex; align-items: center; gap: 12px; }
+  .cry-logo { flex-shrink: 0; display: block; }
+  .cry-title-block { display: flex; flex-direction: column; gap: 2px; }
+  .cry-title { font-family: 'Fraunces', serif; font-weight: 500; font-style: italic; font-size: 30px; letter-spacing: -0.01em; margin: 0; }
+  .cry-subtitle { font-size: 13px; color: var(--ink-soft2); margin: 0; }
+  .cry-nav { display: flex; align-items: center; gap: 6px; }
+  .cry-icon-btn { display: flex; align-items: center; justify-content: center; width: 34px; height: 34px; border-radius: 10px; border: 1px solid var(--divider); background: var(--surface); color: var(--ink); cursor: pointer; transition: background 0.15s ease; }
+  .cry-icon-btn:hover { background: var(--accent-soft); }
+  .cry-month-label { font-family: 'Fraunces', serif; font-size: 17px; font-weight: 500; min-width: 148px; text-align: center; }
+  .cry-today-btn { font-family: 'Karla', sans-serif; font-size: 13px; font-weight: 600; color: var(--accent); background: var(--accent-soft); border: none; border-radius: 10px; padding: 8px 14px; cursor: pointer; transition: background 0.15s ease; }
+  .cry-today-btn:hover { background: #e3daf2; }
+
+  .cry-legend { display: flex; gap: 16px; flex-wrap: wrap; margin: 18px 0 10px; font-size: 12.5px; color: var(--ink-soft2); }
+  .cry-legend-item { display: flex; align-items: center; gap: 6px; }
+  .cry-legend-dot { width: 9px; height: 9px; border-radius: 3px; display: inline-block; }
+
+  .cry-weekdays { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; margin-bottom: 6px; }
+  .cry-weekday { text-align: center; font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: 0.04em; color: var(--ink-soft2); text-transform: uppercase; padding-bottom: 4px; }
+
+  .cry-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
+  .cry-cell { position: relative; aspect-ratio: 1 / 1; min-height: 56px; border-radius: 12px; background: var(--surface); border: 1px solid var(--divider); display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding: 6px 4px 4px; cursor: pointer; transition: transform 0.12s ease, box-shadow 0.12s ease, border-color 0.12s ease; }
+  .cry-cell:hover:not(.cry-cell--empty):not(.cry-cell--future) { transform: translateY(-2px); box-shadow: 0 4px 14px rgba(55, 47, 66, 0.08); border-color: var(--accent); }
+  .cry-cell--empty { background: transparent; border-color: transparent; cursor: default; }
+  .cry-cell--future { cursor: not-allowed; opacity: 0.45; }
+  .cry-cell--today { border-color: var(--accent); border-width: 2px; }
+  .cry-cell-num { font-family: 'IBM Plex Mono', monospace; font-size: 12.5px; color: var(--ink); }
+  .cry-cell--today .cry-cell-num { color: var(--accent); font-weight: 600; }
+  .cry-drops { display: flex; gap: 2px; margin-top: auto; padding-top: 4px; flex-wrap: wrap; justify-content: center; align-items: flex-end; }
+  .cry-drops-more { font-family: 'IBM Plex Mono', monospace; font-size: 9px; color: var(--ink-soft2); margin-left: 1px; }
+
+  .cry-stats { margin-top: 22px; display: flex; flex-direction: column; gap: 10px; }
+  .cry-stats-title { font-family: 'IBM Plex Mono', monospace; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--ink-soft2); }
+  .cry-stat-row { display: flex; align-items: center; gap: 10px; }
+  .cry-stat-label { width: 84px; font-size: 13px; flex-shrink: 0; display: flex; align-items: center; gap: 6px; }
+  .cry-stat-track { flex: 1; height: 8px; border-radius: 5px; background: var(--accent-soft); overflow: hidden; }
+  .cry-stat-fill { height: 100%; border-radius: 5px; transition: width 0.4s ease; }
+  .cry-stat-count { font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: var(--ink-soft2); width: 18px; text-align: right; }
+  .cry-stats-empty { font-size: 13px; font-style: italic; color: var(--ink-soft2); }
+
+  .cry-fab { position: fixed; right: 24px; bottom: 24px; display: flex; align-items: center; gap: 8px; background: var(--accent); color: #fff; border: none; border-radius: 999px; padding: 13px 20px; font-family: 'Karla', sans-serif; font-weight: 600; font-size: 14px; cursor: pointer; box-shadow: 0 6px 20px rgba(91, 75, 138, 0.35); transition: transform 0.15s ease, box-shadow 0.15s ease; }
+  .cry-fab:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(91, 75, 138, 0.45); }
+
+  .cry-overlay { position: fixed; inset: 0; background: rgba(55, 47, 66, 0.35); backdrop-filter: blur(2px); display: flex; align-items: center; justify-content: center; padding: 20px; z-index: 10; animation: cry-fade 0.15s ease; }
+  .cry-modal { background: var(--surface); border-radius: 16px; width: 100%; max-width: 400px; max-height: 88vh; overflow-y: auto; padding: 22px; animation: cry-pop 0.18s ease; }
+  @keyframes cry-fade { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes cry-pop { from { opacity: 0; transform: scale(0.96); } to { opacity: 1; transform: scale(1); } }
+
+  .cry-modal-head { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 14px; }
+  .cry-modal-date { font-family: 'Fraunces', serif; font-size: 19px; font-weight: 500; margin: 0; padding-right: 8px; }
+  .cry-close-btn { background: none; border: none; color: var(--ink-soft2); cursor: pointer; padding: 4px; border-radius: 8px; flex-shrink: 0; }
+  .cry-close-btn:hover { background: var(--accent-soft); color: var(--ink); }
+
+  .cry-entry-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px; }
+  .cry-entry { display: flex; align-items: center; gap: 10px; padding: 9px 10px; border-radius: 10px; border: 1px solid var(--divider); }
+  .cry-entry-icon { width: 30px; height: 30px; border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .cry-entry-body { flex: 1; min-width: 0; }
+  .cry-entry-top { display: flex; align-items: baseline; gap: 8px; }
+  .cry-entry-reason { font-size: 13.5px; font-weight: 600; }
+  .cry-entry-time { font-family: 'IBM Plex Mono', monospace; font-size: 11.5px; color: var(--ink-soft2); }
+  .cry-entry-note { font-size: 12.5px; color: var(--ink-soft2); margin-top: 2px; overflow-wrap: break-word; }
+  .cry-entry-del { background: none; border: none; color: var(--ink-soft2); cursor: pointer; padding: 6px; border-radius: 8px; flex-shrink: 0; }
+  .cry-entry-del:hover { background: var(--amore-bg); color: var(--amore); }
+
+  .cry-empty-day { font-size: 13.5px; font-style: italic; color: var(--ink-soft2); margin: 4px 0 14px; }
+
+  .cry-add-btn { display: flex; align-items: center; justify-content: center; gap: 6px; width: 100%; padding: 11px; border-radius: 10px; border: 1px dashed var(--accent); background: var(--accent-soft); color: var(--accent); font-family: 'Karla', sans-serif; font-weight: 600; font-size: 13.5px; cursor: pointer; }
+  .cry-add-btn:hover { background: #e3daf2; }
+
+  .cry-form { display: flex; flex-direction: column; gap: 14px; margin-top: 6px; }
+  .cry-field-label { font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--ink-soft2); margin-bottom: 6px; display: block; }
+  .cry-reason-row { display: flex; gap: 8px; }
+  .cry-reason-card { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 12px 6px; border-radius: 12px; border: 1.5px solid var(--divider); background: var(--surface); cursor: pointer; font-family: 'Karla', sans-serif; font-size: 12px; font-weight: 600; }
+  .cry-reason-card:hover { border-color: var(--accent); }
+  .cry-reason-card--active { border-color: currentColor; }
+  .cry-time-input, .cry-note-input { width: 100%; border: 1px solid var(--divider); border-radius: 10px; padding: 9px 11px; font-family: 'Karla', sans-serif; font-size: 13.5px; color: var(--ink); background: var(--surface); resize: vertical; }
+  .cry-time-input { font-family: 'IBM Plex Mono', monospace; }
+  .cry-form-error { font-size: 12.5px; color: var(--amore); margin: -6px 0 0; }
+  .cry-form-actions { display: flex; gap: 8px; margin-top: 2px; }
+  .cry-btn-secondary, .cry-btn-primary { flex: 1; padding: 10px; border-radius: 10px; font-family: 'Karla', sans-serif; font-weight: 600; font-size: 13.5px; cursor: pointer; border: none; }
+  .cry-btn-secondary { background: var(--bg); color: var(--ink-soft2); border: 1px solid var(--divider); }
+  .cry-btn-secondary:hover { background: var(--divider); }
+  .cry-btn-primary { background: var(--accent); color: #fff; }
+  .cry-btn-primary:hover { background: #4a3d75; }
+
+  .cry-save-error { position: fixed; left: 24px; bottom: 24px; background: var(--amore-bg); color: var(--amore); font-size: 12.5px; padding: 8px 12px; border-radius: 10px; max-width: 200px; }
+
+  @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+
+  @media (max-width: 480px) {
+    .cry-app { padding: 24px 16px 100px; }
+    .cry-title { font-size: 24px; }
+    .cry-cell { min-height: 42px; }
+    .cry-stat-label { width: 68px; font-size: 11.5px; }
+  }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script>
+(function () {
+  "use strict";
+
+  /* ---------- icons (plain SVG strings, no external library) ---------- */
+  function svgIcon(paths, size, color) {
+    return '<svg width="' + size + '" height="' + size + '" viewBox="0 0 24 24" fill="none" stroke="' + color +
+      '" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + paths + '</svg>';
+  }
+  var ICONS = {
+    chevronLeft: function (s, c) { return svgIcon('<path d="M15 18l-6-6 6-6"/>', s, c); },
+    chevronRight: function (s, c) { return svgIcon('<path d="M9 18l6-6-6-6"/>', s, c); },
+    x: function (s, c) { return svgIcon('<path d="M18 6 6 18"/><path d="M6 6l12 12"/>', s, c); },
+    plus: function (s, c) { return svgIcon('<path d="M12 5v14"/><path d="M5 12h14"/>', s, c); },
+    trash: function (s, c) { return svgIcon('<path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/>', s, c); },
+    briefcase: function (s, c) { return svgIcon('<rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>', s, c); },
+    gradcap: function (s, c) { return svgIcon('<path d="M22 10 12 5 2 10l10 5 10-5Z"/><path d="M6 12.5v4c0 1.4 2.7 2.8 6 2.8s6-1.4 6-2.8v-4"/>', s, c); },
+    brokenHeart: function (s, c) {
+      return '<svg width="' + s + '" height="' + s + '" viewBox="0 0 24 24" fill="none" stroke="' + c +
+        '" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7.8-4.8-10.2-9.6C.4 8.4 2 4.6 5.6 3.7c2.1-.5 4 .3 5.3 2l1.1 1.5 1.1-1.5c1.3-1.7 3.2-2.5 5.3-2 3.6.9 5.2 4.7 3.8 7.7C19.8 16.2 12 21 12 21z"/><path d="M10.2 8.2 12 11l-2 2 2.6 2.6-1 2.7"/></svg>';
+    },
+    tear: function (s, c) {
+      var h = Math.round(s * 1.3);
+      return '<svg width="' + s + '" height="' + h + '" viewBox="0 0 10 13" style="display:block"><path d="M5 0C5 0 0 6.7 0 9.6C0 12.1 2.2 13 5 13C7.8 13 10 12.1 10 9.6C10 6.7 5 0 5 0Z" fill="' + c + '"/></svg>';
+    }
+  };
+
+  var REASONS = {
+    amore: { key: "amore", label: "Amore", icon: ICONS.brokenHeart, color: "var(--amore)", bg: "var(--amore-bg)" },
+    lavoro: { key: "lavoro", label: "Lavoro", icon: ICONS.briefcase, color: "var(--lavoro)", bg: "var(--lavoro-bg)" },
+    universita: { key: "universita", label: "Università", icon: ICONS.gradcap, color: "var(--universita)", bg: "var(--universita-bg)" }
+  };
+  var REASON_ORDER = ["amore", "lavoro", "universita"];
+
+  var LOGO_MARK =
+    '<svg class="cry-logo" width="34" height="44" viewBox="0 0 40 52" xmlns="http://www.w3.org/2000/svg">' +
+    '<defs><linearGradient id="cryLogoGrad" x1="0" y1="0" x2="0" y2="1">' +
+    '<stop offset="0%" stop-color="#C97B93"/><stop offset="50%" stop-color="#C98F4E"/><stop offset="100%" stop-color="#4E8C8C"/>' +
+    '</linearGradient></defs>' +
+    '<ellipse cx="20" cy="46" rx="13" ry="4" fill="#5B4B8A" opacity="0.12"/>' +
+    '<path d="M20 2C20 2 4 26 4 36C4 45 11 50 20 50C29 50 36 45 36 36C36 26 20 2 20 2Z" fill="url(#cryLogoGrad)"/>' +
+    '</svg>';
+
+  /* ---------- helpers ---------- */
+  function pad(n) { return String(n).padStart(2, "0"); }
+  function toDateStr(d) { return d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate()); }
+  function nowTimeStr() { var d = new Date(); return pad(d.getHours()) + ":" + pad(d.getMinutes()); }
+  function escapeHtml(str) {
+    return String(str).replace(/[&<>"']/g, function (c) {
+      return ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c];
+    });
+  }
+  var TODAY_STR = toDateStr(new Date());
+  var WEEKDAYS = ["Lun", "Mar", "Mer", "Gio", "Ven", "Sab", "Dom"];
+  var STORAGE_KEY = "diario-del-pianto-entries";
+
+  function buildGrid(year, month) {
+    var firstDay = new Date(year, month, 1);
+    var daysInMonth = new Date(year, month + 1, 0).getDate();
+    var leading = (firstDay.getDay() + 6) % 7;
+    var cells = [];
+    for (var i = 0; i < leading; i++) cells.push(null);
+    for (var d = 1; d <= daysInMonth; d++) cells.push(new Date(year, month, d));
+    while (cells.length % 7 !== 0) cells.push(null);
+    return cells;
+  }
+  function formatLongDate(dateStr) {
+    var parts = dateStr.split("-").map(Number);
+    var dt = new Date(parts[0], parts[1] - 1, parts[2]);
+    var s = dt.toLocaleDateString("it-IT", { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+    return s.charAt(0).toUpperCase() + s.slice(1);
+  }
+  function capitalize(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
+  function uid() {
+    if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
+    return Date.now() + "-" + Math.random().toString(16).slice(2);
+  }
+
+  /* ---------- state ---------- */
+  var entries = loadEntries();
+  var today = new Date();
+  var viewYear = today.getFullYear();
+  var viewMonth = today.getMonth();
+  var selectedDate = null;
+  var showFormOnOpen = false;
+  var saveError = false;
+  var formDefaultTime = nowTimeStr();
+
+  function loadEntries() {
+    try {
+      var raw = localStorage.getItem(STORAGE_KEY);
+      return raw ? JSON.parse(raw) : [];
+    } catch (e) { return []; }
+  }
+  function persist(updated) {
+    entries = updated;
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(updated)); saveError = false; }
+    catch (e) { saveError = true; }
+  }
+  function entriesForDate(dateStr) {
+    return entries.filter(function (e) { return e.date === dateStr; })
+      .sort(function (a, b) { return a.time.localeCompare(b.time); });
+  }
+  function monthEntries(year, month) {
+    var prefix = year + "-" + pad(month + 1);
+    return entries.filter(function (e) { return e.date.indexOf(prefix) === 0; });
+  }
+
+  /* ---------- rendering ---------- */
+  var root = document.getElementById("root");
+
+  function render() {
+    var grid = buildGrid(viewYear, viewMonth);
+    var monthDate = new Date(viewYear, viewMonth, 1);
+    var monthLabel = capitalize(monthDate.toLocaleDateString("it-IT", { month: "long", year: "numeric" }));
+    var mEntries = monthEntries(viewYear, viewMonth);
+    var counts = { amore: 0, lavoro: 0, universita: 0 };
+    mEntries.forEach(function (e) { if (counts[e.reason] !== undefined) counts[e.reason]++; });
+    var maxCount = Math.max(1, counts.amore, counts.lavoro, counts.universita);
+
+    var html = "";
+    html += '<div class="cry-header">';
+    html += '  <div class="cry-brand">';
+    html += LOGO_MARK;
+    html += '    <div class="cry-title-block">';
+    html += '      <h1 class="cry-title">Diario del pianto</h1>';
+    html += '      <p class="cry-subtitle">Un posto privato per le tue lacrime, giorno per giorno.</p>';
+    html += '    </div>';
+    html += '  </div>';
+    html += '  <div class="cry-nav">';
+    html += '    <button class="cry-today-btn" data-action="today">Oggi</button>';
+    html += '    <button class="cry-icon-btn" data-action="prev-month" aria-label="Mese precedente">' + ICONS.chevronLeft(18, "currentColor") + '</button>';
+    html += '    <span class="cry-month-label">' + monthLabel + '</span>';
+    html += '    <button class="cry-icon-btn" data-action="next-month" aria-label="Mese successivo">' + ICONS.chevronRight(18, "currentColor") + '</button>';
+    html += '  </div>';
+    html += '</div>';
+
+    html += '<div class="cry-legend">';
+    REASON_ORDER.forEach(function (k) {
+      var r = REASONS[k];
+      html += '<span class="cry-legend-item"><span class="cry-legend-dot" style="background:' + r.color + '"></span>' + r.label + '</span>';
+    });
+    html += '</div>';
+
+    html += '<div class="cry-weekdays">';
+    WEEKDAYS.forEach(function (w) { html += '<div class="cry-weekday">' + w + '</div>'; });
+    html += '</div>';
+
+    html += '<div class="cry-grid">';
+    grid.forEach(function (date, i) {
+      if (!date) { html += '<div class="cry-cell cry-cell--empty"></div>'; return; }
+      var dateStr = toDateStr(date);
+      var isFuture = dateStr > TODAY_STR;
+      var isToday = dateStr === TODAY_STR;
+      var dayEntries = entriesForDate(dateStr);
+      var shown = dayEntries.slice(0, 4);
+      var extra = dayEntries.length - shown.length;
+      var cls = "cry-cell" + (isToday ? " cry-cell--today" : "") + (isFuture ? " cry-cell--future" : "");
+      html += '<div class="' + cls + '"' + (isFuture ? '' : ' data-action="open-day" data-date="' + dateStr + '" role="button" tabindex="0"') + '>';
+      html += '  <span class="cry-cell-num">' + date.getDate() + '</span>';
+      if (dayEntries.length > 0) {
+        html += '<div class="cry-drops">';
+        shown.forEach(function (e) { html += ICONS.tear(8, REASONS[e.reason] ? REASONS[e.reason].color : "var(--ink-soft2)"); });
+        if (extra > 0) html += '<span class="cry-drops-more">+' + extra + '</span>';
+        html += '</div>';
+      }
+      html += '</div>';
+    });
+    html += '</div>';
+
+    html += '<div class="cry-stats">';
+    html += '<span class="cry-stats-title">Questo mese — ' + mEntries.length + ' lacrim' + (mEntries.length === 1 ? "a" : "e") + '</span>';
+    if (mEntries.length === 0) {
+      html += '<span class="cry-stats-empty">Nessuna lacrima registrata questo mese.</span>';
+    } else {
+      REASON_ORDER.forEach(function (k) {
+        var r = REASONS[k];
+        var pct = (counts[k] / maxCount) * 100;
+        html += '<div class="cry-stat-row">';
+        html += '  <span class="cry-stat-label">' + r.icon(14, r.color) + ' ' + r.label + '</span>';
+        html += '  <div class="cry-stat-track"><div class="cry-stat-fill" style="width:' + pct + '%;background:' + r.color + '"></div></div>';
+        html += '  <span class="cry-stat-count">' + counts[k] + '</span>';
+        html += '</div>';
+      });
+    }
+    html += '</div>';
+
+    html += '<button class="cry-fab" data-action="open-now">' + ICONS.plus(17, "currentColor") + ' Ho pianto ora</button>';
+
+    if (saveError) {
+      html += '<div class="cry-save-error">Non riesco a salvare in questo momento. Riprova tra poco.</div>';
+    }
+
+    if (selectedDate) {
+      var dayEntries2 = entriesForDate(selectedDate);
+      html += '<div class="cry-overlay" data-overlay="1">';
+      html += '  <div class="cry-modal">';
+      html += '    <div class="cry-modal-head">';
+      html += '      <h2 class="cry-modal-date">' + formatLongDate(selectedDate) + '</h2>';
+      html += '      <button class="cry-close-btn" data-action="close-modal" aria-label="Chiudi">' + ICONS.x(18, "currentColor") + '</button>';
+      html += '    </div>';
+
+      html += '    <p class="cry-empty-day" style="display:' + (dayEntries2.length === 0 ? "block" : "none") + '" id="cry-empty-msg">Nessuna lacrima registrata per questo giorno.</p>';
+
+      html += '    <div class="cry-entry-list" style="display:' + (dayEntries2.length > 0 ? "flex" : "none") + '" id="cry-entry-list">';
+      dayEntries2.forEach(function (e) {
+        var r = REASONS[e.reason];
+        html += '<div class="cry-entry">';
+        html += '  <span class="cry-entry-icon" style="background:' + r.bg + '">' + r.icon(15, r.color) + '</span>';
+        html += '  <div class="cry-entry-body">';
+        html += '    <div class="cry-entry-top"><span class="cry-entry-reason" style="color:' + r.color + '">' + r.label + '</span><span class="cry-entry-time">' + e.time + '</span></div>';
+        if (e.note) html += '<div class="cry-entry-note">' + escapeHtml(e.note) + '</div>';
+        html += '  </div>';
+        html += '  <button class="cry-entry-del" data-action="delete-entry" data-id="' + e.id + '" aria-label="Elimina">' + ICONS.trash(15, "currentColor") + '</button>';
+        html += '</div>';
+      });
+      html += '    </div>';
+
+      html += '    <button class="cry-add-btn" id="cry-add-btn" data-action="show-form" style="display:' + (showFormOnOpen ? "none" : "flex") + '">' + ICONS.plus(16, "currentColor") + ' Aggiungi pianto</button>';
+
+      html += '    <div class="cry-form" id="cry-form-wrap" data-selected-reason="" style="display:' + (showFormOnOpen ? "flex" : "none") + '">';
+      html += '      <div>';
+      html += '        <span class="cry-field-label">Motivo</span>';
+      html += '        <div class="cry-reason-row">';
+      REASON_ORDER.forEach(function (k) {
+        var r = REASONS[k];
+        html += '<button type="button" class="cry-reason-card" data-action="select-reason" data-reason="' + k + '" style="color:' + r.color + ';background:var(--surface)">' + r.icon(20, r.color) + r.label + '</button>';
+      });
+      html += '        </div>';
+      html += '        <p class="cry-form-error" id="cry-form-error" style="display:none">Scegli un motivo per continuare.</p>';
+      html += '      </div>';
+      html += '      <div>';
+      html += '        <span class="cry-field-label">Orario</span>';
+      html += '        <input type="time" class="cry-time-input" id="cry-time-input" value="' + formDefaultTime + '" />';
+      html += '      </div>';
+      html += '      <div>';
+      html += '        <span class="cry-field-label">Nota (facoltativa)</span>';
+      html += '        <textarea class="cry-note-input" id="cry-note-input" rows="2" placeholder="Cosa è successo?"></textarea>';
+      html += '      </div>';
+      html += '      <div class="cry-form-actions">';
+      html += '        <button class="cry-btn-secondary" data-action="cancel-form">Annulla</button>';
+      html += '        <button class="cry-btn-primary" data-action="save-entry">Salva</button>';
+      html += '      </div>';
+      html += '    </div>';
+
+      html += '  </div>';
+      html += '</div>';
+    }
+
+    root.innerHTML = html;
+  }
+
+  /* ---------- actions ---------- */
+  function openDay(dateStr, autoForm) {
+    selectedDate = dateStr;
+    showFormOnOpen = !!autoForm;
+    formDefaultTime = nowTimeStr();
+    render();
+  }
+  function closeModal() {
+    selectedDate = null;
+    showFormOnOpen = false;
+    render();
+  }
+  function resetFormDom() {
+    var wrap = document.getElementById("cry-form-wrap");
+    if (!wrap) return;
+    wrap.dataset.selectedReason = "";
+    document.querySelectorAll(".cry-reason-card").forEach(function (btn) {
+      btn.classList.remove("cry-reason-card--active");
+      btn.style.background = "var(--surface)";
+    });
+    var timeInput = document.getElementById("cry-time-input");
+    if (timeInput) timeInput.value = nowTimeStr();
+    var noteInput = document.getElementById("cry-note-input");
+    if (noteInput) noteInput.value = "";
+    var err = document.getElementById("cry-form-error");
+    if (err) err.style.display = "none";
+  }
+  function addEntry(date, time, reason, note) {
+    var entry = { id: uid(), date: date, time: time || nowTimeStr(), reason: reason, note: (note || "").trim(), createdAt: new Date().toISOString() };
+    persist(entries.concat([entry]));
+    showFormOnOpen = false;
+    render();
+  }
+  function deleteEntry(id) {
+    persist(entries.filter(function (e) { return e.id !== id; }));
+    render();
+  }
+
+  root.addEventListener("click", function (e) {
+    if (e.target && e.target.classList && e.target.classList.contains("cry-overlay")) {
+      closeModal();
+      return;
+    }
+    var el = e.target.closest("[data-action]");
+    if (!el) return;
+    var action = el.getAttribute("data-action");
+
+    if (action === "prev-month") {
+      viewMonth--; if (viewMonth < 0) { viewMonth = 11; viewYear--; }
+      render();
+    } else if (action === "next-month") {
+      viewMonth++; if (viewMonth > 11) { viewMonth = 0; viewYear++; }
+      render();
+    } else if (action === "today") {
+      var d = new Date(); viewYear = d.getFullYear(); viewMonth = d.getMonth();
+      render();
+    } else if (action === "open-day") {
+      openDay(el.getAttribute("data-date"), false);
+    } else if (action === "open-now") {
+      openDay(TODAY_STR, true);
+    } else if (action === "close-modal") {
+      closeModal();
+    } else if (action === "show-form") {
+      var addBtn = document.getElementById("cry-add-btn");
+      var formWrap = document.getElementById("cry-form-wrap");
+      if (addBtn) addBtn.style.display = "none";
+      if (formWrap) formWrap.style.display = "flex";
+    } else if (action === "cancel-form") {
+      var addBtn2 = document.getElementById("cry-add-btn");
+      var formWrap2 = document.getElementById("cry-form-wrap");
+      if (formWrap2) formWrap2.style.display = "none";
+      if (addBtn2) addBtn2.style.display = "flex";
+      resetFormDom();
+    } else if (action === "select-reason") {
+      var reasonKey = el.getAttribute("data-reason");
+      var wrap = document.getElementById("cry-form-wrap");
+      if (wrap) wrap.dataset.selectedReason = reasonKey;
+      document.querySelectorAll(".cry-reason-card").forEach(function (btn) {
+        var k = btn.getAttribute("data-reason");
+        if (k === reasonKey) {
+          btn.classList.add("cry-reason-card--active");
+          btn.style.background = REASONS[k].bg;
+        } else {
+          btn.classList.remove("cry-reason-card--active");
+          btn.style.background = "var(--surface)";
+        }
+      });
+      var err = document.getElementById("cry-form-error");
+      if (err) err.style.display = "none";
+    } else if (action === "save-entry") {
+      var formWrap3 = document.getElementById("cry-form-wrap");
+      var reason = formWrap3 ? formWrap3.dataset.selectedReason : "";
+      if (!reason) {
+        var err2 = document.getElementById("cry-form-error");
+        if (err2) err2.style.display = "block";
+        return;
+      }
+      var timeVal = document.getElementById("cry-time-input").value;
+      var noteVal = document.getElementById("cry-note-input").value;
+      addEntry(selectedDate, timeVal, reason, noteVal);
+    } else if (action === "delete-entry") {
+      deleteEntry(el.getAttribute("data-id"));
+    }
+  });
+
+  render();
+})();
+</script>
+</body>
+</html>
